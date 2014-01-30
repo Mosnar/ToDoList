@@ -8,7 +8,8 @@
 /**
  * @Inject database
  */
-class ToDoItem implements DatabaseModel {
+class ToDoItem implements DatabaseModel
+{
     public $id = null;
     public $text;
     public $datetime;
@@ -17,7 +18,8 @@ class ToDoItem implements DatabaseModel {
 
     private $dbh;
 
-    public function __CONSTRUCT($id = null) {
+    public function __CONSTRUCT($id = null)
+    {
         if ($id != null) {
             $this->id = $id;
         }
@@ -28,7 +30,8 @@ class ToDoItem implements DatabaseModel {
      * @return bool
      * @throws Exception if no relational mapping exists to database
      */
-    public function delete() {
+    public function delete()
+    {
         if (self::verify()) {
             $delete = $this->dbh->prepare("DELETE FROM `tasks` WHERE `id` = ?");
             if ($delete->execute(array($this->id))) {
@@ -46,7 +49,8 @@ class ToDoItem implements DatabaseModel {
      * @return id
      * @throws Exception
      */
-    public function create() {
+    public function create()
+    {
         if (self::verify()) {
             throw new Exception("ToDoItem already has mapping");
         }
@@ -66,7 +70,8 @@ class ToDoItem implements DatabaseModel {
     /**
      * Sends updated fields upstream and alters item with ID
      */
-    public function synchronize() {
+    public function synchronize()
+    {
 
     }
 
@@ -74,7 +79,8 @@ class ToDoItem implements DatabaseModel {
      * Attempts to set the object fields to match those set in it's database-mapped counterpart
      * @return bool
      */
-    public function pull() {
+    public function pull()
+    {
         if (!self::verify()) {
             return false;
         }
@@ -83,7 +89,7 @@ class ToDoItem implements DatabaseModel {
         $select->execute(array(':id' => $this->id));
         $select->setFetchMode(PDO::FETCH_ASSOC);
 
-        while($row = $select->fetch()) {
+        while ($row = $select->fetch()) {
             $this->datetime = $row['datetime'];
             $this->text = $row['text'];
             $this->inProgress = $row['in_progress'];
@@ -95,7 +101,8 @@ class ToDoItem implements DatabaseModel {
      * Returns true of an item matching the id of the object exists in the database
      * @return bool
      */
-    public function verify() {
+    public function verify()
+    {
         $this->dbh = $this->database->getHandle();
         if ($this->id == null) {
             return false;
@@ -111,7 +118,8 @@ class ToDoItem implements DatabaseModel {
      * Prints out a human readable string regardless of synchronization state
      * @return string
      */
-    public function __toString() {
-        return $this->text ." on ".$this->datetime;
+    public function __toString()
+    {
+        return $this->text . " on " . $this->datetime;
     }
 } 
