@@ -72,7 +72,26 @@ class ToDoItem implements DatabaseModel
      */
     public function synchronize()
     {
-
+        if (self::verify()) {
+            $sql = "UPDATE tasks SET title=?, author=? WHERE id=?";
+            $update = $this->dbh->prepare("UPDATE tasks SET uid=:uid, text=:text, datetime=:datetime, in_progress=:in_progress where id = :id");
+            $this->dbh->beginTransaction();
+            $update->execute(array(
+                    ':id' => $this->id,
+                    ':uid' => $this->uid,
+                    ':datetime' => $this->datetime,
+                    ':in_progress' => $this->inProgress,
+                    ':text' => $this->text
+                )
+            );
+            if ($update->rowCount() <= 1) {
+                $this->dbh->commit();
+                return true;
+            } else {
+                $this->dbh->rollBack();
+                return false;
+            }
+        }
     }
 
     /**
@@ -95,6 +114,7 @@ class ToDoItem implements DatabaseModel
             $this->inProgress = $row['in_progress'];
             $this->uid = $row['uid'];
         }
+        return true;
     }
 
     /**

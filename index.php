@@ -45,7 +45,15 @@ print($tdi->create());
 $tdi = DI::getInstanceOf("ToDoItem");
 $tdi->id = 3;
 if ($tdi->pull()) {
-    print($tdi);
+    $tdi->text = "You just got updated, yo!";
+    $tdi->datetime = $date->getDate();
+
+    if($tdi->synchronize()) {
+        print("Success!");
+        print($tdi);
+    } else {
+        print("Failed to update");
+    }
 } else {
-    print($tdi);
+    print("Failed to pull");
 }

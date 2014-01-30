@@ -27,4 +27,15 @@ class ToDoItemController
     {
 
     }
+
+    /**
+     * Modified the in_progress field for a task
+     * @param $id Item ID
+     * @param $uuid user ID, used for auth
+     * @param $state 0 or 1 for progress state
+     * @return boolean success
+     */
+    public function setProgressState($id, $uid, $state) {
+
+    }
 } 

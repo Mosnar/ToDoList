@@ -1,16 +1,19 @@
 <?php
+
 /**
  * User: Ransom Roberson
  * Date: 1/30/14
  * Time: 3:28 PM
  */
-class DateMaker {
+class DateMaker
+{
     /**
      * Return the current datetime for inserting into a "datetime" MySQL column. You may also supply the time as
      * a parameter.
      * @return bool|string
      */
-    public function getDate($time = null) {
+    public function getDate($time = null)
+    {
         if ($time == null) {
             $time = time();
         }
