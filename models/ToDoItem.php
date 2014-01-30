@@ -23,6 +23,11 @@ class ToDoItem implements DatabaseModel {
         }
     }
 
+    /**
+     * Deletes the current item if it exists in the database
+     * @return bool
+     * @throws Exception if no relational mapping exists to database
+     */
     public function delete() {
         if (self::verify()) {
             $delete = $this->dbh->prepare("DELETE FROM `tasks` WHERE `id` = ?");
@@ -36,6 +41,11 @@ class ToDoItem implements DatabaseModel {
         }
     }
 
+    /**
+     * Creates a new database item based on the fields of this object
+     * @return id
+     * @throws Exception
+     */
     public function create() {
         if (self::verify()) {
             throw new Exception("ToDoItem already has mapping");
@@ -60,6 +70,10 @@ class ToDoItem implements DatabaseModel {
 
     }
 
+    /**
+     * Attempts to set the object fields to match those set in it's database-mapped counterpart
+     * @return bool
+     */
     public function pull() {
         if (!self::verify()) {
             return false;
@@ -67,9 +81,6 @@ class ToDoItem implements DatabaseModel {
         //TODO: Store this prepared statement somewhere and use with verify()
         $select = $this->dbh->prepare("select * from tasks where id = :id");
         $select->execute(array(':id' => $this->id));
-
-        $select->execute();
-        $count = $select->rowCount();
         $select->setFetchMode(PDO::FETCH_ASSOC);
 
         while($row = $select->fetch()) {
@@ -80,6 +91,10 @@ class ToDoItem implements DatabaseModel {
         }
     }
 
+    /**
+     * Returns true of an item matching the id of the object exists in the database
+     * @return bool
+     */
     public function verify() {
         $this->dbh = $this->database->getHandle();
         if ($this->id == null) {
@@ -92,6 +107,10 @@ class ToDoItem implements DatabaseModel {
         return ($count == 1);
     }
 
+    /**
+     * Prints out a human readable string regardless of synchronization state
+     * @return string
+     */
     public function __toString() {
         return $this->text ." on ".$this->datetime;
     }
