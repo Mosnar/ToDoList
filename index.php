@@ -44,7 +44,7 @@ print($tdi->create());
 
 $tdi = DI::getInstanceOf("ToDoItem");
 $tdi->id = 3;
-if($tdi->pull()) {
+if ($tdi->pull()) {
     print($tdi);
 } else {
     print($tdi);

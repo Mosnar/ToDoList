@@ -9,20 +9,22 @@
  * @Inject database
  * @Inject hasher
  */
-class ToDoItemController {
-
+class ToDoItemController
+{
     /**
      * Gets a ToDoItem object from the database based on id
      * @param $id
      */
-    public function get($id) {
+    public function get($id)
+    {
 
     }
 
     /**
      * Gets all ToDoItems for a particular user. If uid is null, get all
      */
-    public function getAll($uid = null) {
+    public function getAll($uid = null)
+    {
 
     }
 } 
