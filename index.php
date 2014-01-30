@@ -28,14 +28,24 @@ require_once("controllers/ToDoItemController.php");
 DI::mapClassAsSingleton("database", "Database");
 DI::mapClass("hasher", "MD5IdentityHasher");
 
-$tdi = DI::getInstanceOf("ToDoItem");
 
 // Static libraries
 $hasher = new MD5IdentityHasher();
 $date = new DateMaker();
 
+/*
+$tdi = DI::getInstanceOf("ToDoItem");
 $tdi->datetime = $date->getDate();
 $tdi->text = "Hi, this is a test!";
 $tdi->uid = $hasher->hash($ip);
 $tdi->inProgress = 0;
-//print($tdi->create());
+print($tdi->create());
+*/
+
+$tdi = DI::getInstanceOf("ToDoItem");
+$tdi->id = 3;
+if($tdi->pull()) {
+    print($tdi);
+} else {
+    print($tdi);
+}

@@ -41,7 +41,6 @@ class ToDoItem implements DatabaseModel {
             throw new Exception("ToDoItem already has mapping");
         }
         $insert = $this->dbh->prepare("INSERT INTO `tasks` (uid, datetime, text, in_progress) value (:uid, :datetime, :text, :in_progress)");
-
         $insert->bindParam(':uid', $this->uid);
         $insert->bindParam(':datetime', $this->datetime);
         $insert->bindParam(':text', $this->text);
@@ -62,7 +61,23 @@ class ToDoItem implements DatabaseModel {
     }
 
     public function pull() {
+        if (!self::verify()) {
+            return false;
+        }
+        //TODO: Store this prepared statement somewhere and use with verify()
+        $select = $this->dbh->prepare("select * from tasks where id = :id");
+        $select->execute(array(':id' => $this->id));
 
+        $select->execute();
+        $count = $select->rowCount();
+        $select->setFetchMode(PDO::FETCH_ASSOC);
+
+        while($row = $select->fetch()) {
+            $this->datetime = $row['datetime'];
+            $this->text = $row['text'];
+            $this->inProgress = $row['in_progress'];
+            $this->uid = $row['uid'];
+        }
     }
 
     public function verify() {
@@ -70,8 +85,9 @@ class ToDoItem implements DatabaseModel {
         if ($this->id == null) {
             return false;
         }
-        $select = $this->dbh->prepare('SELECT FROM `tasks` WEHRE `id` = `'.intval($this->id).'`');
-        $select->execute();
+        $select = $this->dbh->prepare("select id from tasks where id = :id");
+        $select->execute(array(':id' => $this->id));
+
         $count = $select->rowCount();
         return ($count == 1);
     }
