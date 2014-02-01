@@ -8,6 +8,7 @@
 /**
  * @Inject database
  * @Inject hasher
+ * @Inject datemaker
  */
 class ToDoItemController
 {
@@ -35,16 +36,17 @@ class ToDoItemController
     /**
      * Gets all ToDoItems for a particular user. If uid is null, get all
      */
-    public function getAll($uid = null)
+    public function getAll($uid = -1)
     {
+        self::updateUID();
         $this->dbh = $this->database->getHandle();
-        if ($uid == null)
+        if ($uid == -1)
         {
             $select = $this->dbh->prepare("select * from tasks");
         } else {
             $select = $this->dbh->prepare("select * from tasks where uid = :uid");
         }
-        $select->execute(array(':uid' => $uid));
+        $select->execute(array(':uid' => $this->uid));
         $select->setFetchMode(PDO::FETCH_ASSOC);
 
         $results = array();
@@ -67,12 +69,12 @@ class ToDoItemController
      * @param $text
      * @return Item object added or null if failure
      */
-    public function addItem($text) {
-        $this->uid = $this->hasher->hash($_SERVER['REMOTE_ADDR']);
+    public function addItem($text, $inProgress = 0) {
+        self::updateUID();
         $tdi = DI::getInstanceOf("ToDoItem");
         $tdi->datetime = $this->datemaker->getDate();
         $tdi->text = $text;
-        $tdi->inProgress = 0;
+        $tdi->inProgress = $inProgress;
         $tdi->uid = $this->uid;
         if($id = $tdi->create()) {
             $tdi->id = $id;
@@ -89,11 +91,12 @@ class ToDoItemController
      * @param $state 0 or 1 for progress state
      * @return boolean success
      */
-    public function setProgressState($id, $uid, $state) {
+    public function setProgressState($id, $state) {
+        self::updateUID();
         $tdi = DI::getInstanceOf("ToDoItem");
         $tdi->id = intval($id);
         if($tdi->pull()) {
-            if($tdi->uid == $uid) {
+            if($tdi->uid == $this->uid) {
                 $tdi->inProgress = intval($state);
                 return $tdi->synchronize();
             } else {
@@ -104,5 +107,31 @@ class ToDoItemController
             // No such item
             return false;
         }
+    }
+
+    public function remove($id) {
+        if (self::isOwned($id)) {
+
+        }
+
+    }
+
+    private function isOwned($id) {
+        self::updateUID();
+        $tdi = DI::getInstanceOf("ToDoItem");
+        $tdi->id = $id;
+        if ($tdi->pull()) {
+            if ($tdi->uid == $this->uid) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    private function updateUID() {
+        $this->uid = $this->hasher->hash($_SERVER['REMOTE_ADDR']);
     }
 } 
