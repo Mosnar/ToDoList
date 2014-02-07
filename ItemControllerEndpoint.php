@@ -32,12 +32,14 @@ DI::mapClass("datemaker","DateMaker");
 
 $itemController = DI::getInstanceOf("ToDoItemController");
 
-$data = $_GET;
+$data = $_POST;
 if (isset($data['action'])) {
     switch ($data['action']) {
         case "add":
             if (isset($data['text'])) {
-                if($r_id = $itemController->addItem($data['text'], intval($data['inProgress']))) {
+                $text = htmlentities($data['text']);
+                $inProgress = isset($data['inProgress']) ? $data['inProgress'] : 0;
+                if($r_id = $itemController->addItem($text, $inProgress)) {
                     print(json_encode(array("success"=>1,"response"=>"Item added","id"=>$r_id)));
                 }
             } else {
