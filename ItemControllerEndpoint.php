@@ -9,7 +9,7 @@
 //header('Content-Type: application/json');
 require_once("bootstrap.php");
 // Interfaces
-require_once("interfaces/DomainModel.php");
+require_once("lib/abstract/DomainModel.php");
 require_once("interfaces/Hasher.php");
 
 // Core libraries
