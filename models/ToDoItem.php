@@ -12,7 +12,6 @@ class ToDoItem extends DomainModel
 {
     public $cols = array();
     private $dbh;
-    protected $colProp = "pooper scooper";
 
     // TODO: Possibly define vars like this:
     public $f_text = null;

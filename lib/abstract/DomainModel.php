@@ -129,6 +129,7 @@ abstract class DomainModel {
             $this->dbh->beginTransaction();
             $update->execute();
 
+            // If everything went smoothly, commit. Else, rollback and fail
             if ($update->rowCount() == 1) {
                 $this->dbh->commit();
                 return true;
@@ -176,7 +177,7 @@ abstract class DomainModel {
      * @return id
      * @throws Exception if the item already has an ID
      */
-    public function create($force = false)
+    public function create()
     {
         // Check if an id is set and it is in the database.
         if (self::verify()) {
@@ -223,7 +224,7 @@ abstract class DomainModel {
      * @return boolean result
      */
     public function verify() {
-        if ($this->columns['id'] == null) {
+        if (!isset($this->columns['id']) || $this->columns['id'] == null) {
             return false;
         }
 
