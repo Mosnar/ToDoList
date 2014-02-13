@@ -70,7 +70,8 @@ DI::mapClass("datemaker", "DateMaker");
                     url: "ItemControllerEndpoint.php",
                     data: { action: "add", inProgress: progress, text: text},
                     success: function(data){
-                        $("#myItems").append("<li>"+text+"</li>");
+                        console.log(data);
+                        $("#myItems").append("<li>"+data.item.text+"</li>");
                         $('#addItem').modal('hide');
                         $('#taskText').val("");
                         console.log(data);

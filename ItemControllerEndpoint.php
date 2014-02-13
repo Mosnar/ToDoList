@@ -9,7 +9,7 @@
 //header('Content-Type: application/json');
 require_once("bootstrap.php");
 // Interfaces
-require_once("interfaces/DomainModel.php");
+require_once("lib/abstract/DomainModel.php");
 require_once("interfaces/Hasher.php");
 
 // Core libraries
@@ -39,8 +39,15 @@ if (isset($data['action'])) {
             if (isset($data['text'])) {
                 $text = htmlentities($data['text']);
                 $inProgress = isset($data['inProgress']) ? $data['inProgress'] : 0;
-                if($r_id = $itemController->addItem($text, $inProgress)) {
-                    print(json_encode(array("success"=>1,"response"=>"Item added","id"=>$r_id)));
+                if($rItem = $itemController->addItem($text, $inProgress)) {
+
+                    $result = array(
+                        "success"=>1,
+                        "response"=>"Item added",
+                        "item"=>$rItem);
+                    print(json_encode($result));
+                } else {
+                    print(json_encode(array("success"=>0,"response"=>"Failed to add item")));
                 }
             } else {
                 print(json_encode(array("success"=>0,"response"=>"No text specified")));

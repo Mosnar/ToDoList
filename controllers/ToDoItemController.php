@@ -25,9 +25,11 @@ class ToDoItemController
     public function get($id)
     {
         $tdi = DI::getInstanceOf("ToDoItem");
-        $tdi->id = intval($id);
+        $tdi->initialize();
+
+        $tdi->cols['id'] = $id;
         if ($tdi->pull()) {
-            return $tdi;
+            return $tdi->toArray();
         } else {
             return null;
         }
@@ -52,14 +54,13 @@ class ToDoItemController
         $results = array();
 
         while ($row = $select->fetch()) {
-            $tdi = DI::getInstanceOf("ToDoItem");
-
-            $tdi->id = $row['id'];
-            $tdi->datetime = $row['datetime'];
-            $tdi->text = $row['text'];
-            $tdi->inProgress = $row['in_progress'];
-            $tdi->uid = $row['uid'];
-            $results[] = $tdi;
+            $tdi = DI::getInstanceOf("ToDoItem",array($row['id']));
+            $tdi->initialize();
+            $tdi->pull();
+            //print_r($tdi->toArray());
+            //$tdi->cols['id'] = ;
+            $tdi->pull();
+            $results[] = $tdi->toArray();
         }
         return $results;
     }
@@ -72,13 +73,14 @@ class ToDoItemController
     public function addItem($text, $inProgress = 0) {
         self::updateUID();
         $tdi = DI::getInstanceOf("ToDoItem");
-        $tdi->datetime = $this->datemaker->getDate();
-        $tdi->text = $text;
-        $tdi->inProgress = $inProgress;
-        $tdi->uid = $this->uid;
+        $tdi->initialize();
+        $tdi->cols['datetime'] = $this->datemaker->getDate();
+        $tdi->cols['text'] = $text;
+        $tdi->cols['in_progress'] = $inProgress;
+        $tdi->cols['uid'] = $this->uid;
         if($id = $tdi->create()) {
-            $tdi->id = $id;
-            return $tdi;
+            $tdi->col['id'] = $id;
+            return $tdi->toArray();
         } else {
             return null;
         }
