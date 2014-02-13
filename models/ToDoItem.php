@@ -12,6 +12,14 @@ class ToDoItem extends DomainModel
 {
     public $cols = array();
     private $dbh;
+    protected $colProp = "pooper scooper";
+
+    // TODO: Possibly define vars like this:
+    public $f_text = null;
+    public $f_datetime = null;
+    public $f_id = null;
+    public $f_in_progress = null;
+    public $f_uid = null;
 
     public function __CONSTRUCT($id = null)
     {

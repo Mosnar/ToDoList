@@ -3,11 +3,13 @@
  * User: Ransom Roberson
  * Date: 2/7/14
  * Time: 3:32 PM
- * Description: 
  */
 
 /**
  * Class DomainModel
+ * This purpose of this class is to be extended and used as a framework for interacting with the database and easily
+ * creating new models. This abstract class will manage all database transactions that you might need to perform on an
+ * individual model entity.
  */
 abstract class DomainModel {
     private $tableName;
@@ -85,33 +87,60 @@ abstract class DomainModel {
     }
 
     /**
-     * Pushes up the changes to the object to the database
+     * Pushes the changes to the object to the database
      */
-    /*
+
     public function synchronize() {
+        // If we exist in the database, continue. Otherwise, return false
         if (self::verify()) {
 
+            // Holds the names of the columns. Formatted for PDO prepared statement
+            $outCols = array();
+            // Holds the values of the columns. Formatted for PDO prepared statement (:val, :val2)
+            $outVals = array();
+            // Holds the prepared inputs that are formatted (val=:name)
+            $outPrepared = array();
+            // Formatted prepared statement string (val1=:val1,val2=:val2,etc)
+            $outPrepString = "";
 
-            $update = $this->dbh->prepare("UPDATE {$this->tableName} SET uid=:uid, text=:text, datetime=:datetime, in_progress=:in_progress where id = :id");
+            // Format the arrays
+            foreach ($this->columns as $name => $value) {
+                array_push($outCols, $name);
+                array_push($outVals, ":".$name);
+            }
+
+            // Create the string of values and pdo IDs
+            for($i = 0; $i < count($outCols); $i++) {
+                $outPrepared[$i] = "{$outCols[$i]}={$outVals[$i]}";
+            }
+            $outPrepString = implode(",",$outPrepared);
+
+            $query = "UPDATE {$this->tableName} SET {$outPrepString} where id = :id";
+
+            // Prepare the query
+            $update = $this->dbh->prepare($query);
+
+            // Bind proper values to PDO vars
+            for($i = 0; $i < count($this->columns); $i++) {
+                //print("Binding ".$outVals[$i]." to ". $outCols[$i]." ({$this->columns[$outCols[$i]]}) <br />");
+                $update->bindParam($outVals[$i], $this->columns[$outCols[$i]]);
+            }
+
             $this->dbh->beginTransaction();
-            $update->execute(array(
-                    ':id' => $this->columns['id'],
-                    ':uid' => $this->columns['uid'],
-                    ':datetime' => $this->columns['datetime'],
-                    ':in_progress' => $this->inProgress,
-                    ':text' => $this->text
-                )
-            );
-            if ($update->rowCount() <= 1) {
+            $update->execute();
+
+            if ($update->rowCount() == 1) {
                 $this->dbh->commit();
                 return true;
             } else {
                 $this->dbh->rollBack();
                 return false;
             }
+        } else {
+            return false;
         }
     }
-    */
+
 
     /**
      * Returns the columns and values as array
@@ -125,12 +154,11 @@ abstract class DomainModel {
      * Attempts to set the object fields to match those set in it's database-mapped counterpart
      * @return bool
      */
-
     public function pull() {
+        //var_dump(get_object_vars($this));
         if (!self::verify()) {
             return false;
         }
-        //TODO: Store this prepared statement somewhere and use with verify()
         $select = $this->dbh->prepare("select * from {$this->tableName} where id = :id");
         $select->execute(array(':id' => $this->columns['id']));
         $select->setFetchMode(PDO::FETCH_ASSOC);
@@ -212,14 +240,19 @@ abstract class DomainModel {
      * @param $value
      */
     public function setVal($key, $value) {
-
+        $this->columns[$key] = $value;
     }
 
     /**
      * Gets a key value from the object.
      * @param $key
+     * @return value or null if key doesn't exist
      */
     public function getVal($key) {
-
+        if(isset($this->columns[$key])) {
+            return $this->columns[$key];
+        } else {
+            return null;
+        }
     }
 } 
