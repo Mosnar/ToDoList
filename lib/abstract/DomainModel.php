@@ -13,7 +13,6 @@ abstract class DomainModel {
     private $tableName;
     private $dbh;
     private $columns = array();
-
     /**
      * This should be implemented in the object class to run the DomainModel's abstract "setup" method.
      * This must be self-implemented when using dependency injection since DI does not become active in
@@ -25,7 +24,7 @@ abstract class DomainModel {
      * You should always implement some form of toString()
      * @return A meaningful string representation of the object
      */
-    protected abstract function __toString();
+    public abstract function __toString();
 
     /**
      * Set the database PDO handle. This should be called from inside the model object extending this class.
@@ -49,8 +48,10 @@ abstract class DomainModel {
      * array('id','name','password');
      * @param $columns
      */
-    protected function setColumns($columns) {
-        $this->columns = $columns;
+    protected function setColumns(&$columns) {
+        // Set the columns field to the location of the columns in the extending class. This allows for updates to be
+        // instantly reflected.
+        $this->columns =& $columns;
     }
 
     /**
@@ -71,52 +72,78 @@ abstract class DomainModel {
     {
         if (self::verify()) {
             $delete = $this->dbh->prepare("DELETE FROM {$this->tableName} WHERE id = :id");
-            if ($delete->execute(array(':id' => $this->id))) {
+            if ($delete->execute(array(':id' => $this->columns['id']))) {
                 return true;
             } else {
                 return false;
             }
         } else {
-            throw new Exception("No relational mapping from object to db");
+            return false;
         }
     }
 
     /**
      * Pushes up the changes to the object to the database
      */
-    public abstract function synchronize();
+    /*
+    public function synchronize() {
+        if (self::verify()) {
+
+
+            $update = $this->dbh->prepare("UPDATE {$this->tableName} SET uid=:uid, text=:text, datetime=:datetime, in_progress=:in_progress where id = :id");
+            $this->dbh->beginTransaction();
+            $update->execute(array(
+                    ':id' => $this->columns['id'],
+                    ':uid' => $this->columns['uid'],
+                    ':datetime' => $this->columns['datetime'],
+                    ':in_progress' => $this->inProgress,
+                    ':text' => $this->text
+                )
+            );
+            if ($update->rowCount() <= 1) {
+                $this->dbh->commit();
+                return true;
+            } else {
+                $this->dbh->rollBack();
+                return false;
+            }
+        }
+    }
+    */
 
     /**
      * Attempts to set the object fields to match those set in it's database-mapped counterpart
      * @return bool
      */
+    /*
     public function pull() {
         if (!self::verify()) {
             return false;
         }
         //TODO: Store this prepared statement somewhere and use with verify()
         $select = $this->dbh->prepare("select * from {$this->tableName} where id = :id");
-        $select->execute(array(':id' => $this->id));
+        $select->execute(array(':id' => $this->columns['id']));
         $select->setFetchMode(PDO::FETCH_ASSOC);
 
         while ($row = $select->fetch()) {
             print_r($row);
-            /*
+
 
             $this->datetime = $row['datetime'];
             $this->text = $row['text'];
             $this->inProgress = $row['in_progress'];
             $this->uid = $row['uid'];
-            */
+
         }
         return true;
     }
+    */
 
 
     /**
-     * Creates a new database item based on the fields of this object
+     * Creates a new database item based on the fields of this object. Sets the current object ID to the created ID
      * @return id
-     * @throws Exception
+     * @throws Exception if the item already has an ID
      */
     public function create($force = false)
     {
@@ -125,24 +152,36 @@ abstract class DomainModel {
             throw new Exception("Item already has mapping");
         }
 
+        // Holds the names of the columns. Formatted for PDO prepared statement
         $outCols = array();
+        // Holds the values of the columns. Formatted for PDO prepared statement (:val, :val2)
         $outVals = array();
 
-        foreach ($this->columns as $name) {
+        // Format the arrays
+        foreach ($this->columns as $name => $value) {
+            //print("Working on $name - $value <br />");
             array_push($outCols, $name);
-            array_push($outVals, ":$name");
+            array_push($outVals, ":".$name);
         }
+
         $sOutVals = implode(', ', $outVals);
         $sOutCols = implode(', ', $outCols);
+        $query = "INSERT INTO {$this->tableName} ({$sOutCols}) value ({$sOutVals})";
 
-        $insert = $this->dbh->prepare("INSERT INTO {$this->tableName} ({$$sOutCols}) value ({$$sOutVals})");
+        // Prepare the query
+        $insert = $this->dbh->prepare($query);
+
+        // Bind proper values to PDO vars
         for($i = 0; $i < count($this->columns); $i++) {
-            $insert->bindParam($outVals[$i], $this->columns[$i]);
+            //print("Binding ".$outVals[$i]." to ". $outCols[$i]." ({$this->columns[$outCols[$i]]})");
+            $insert->bindParam($outVals[$i], $this->columns[$outCols[$i]]);
         }
 
+        // Perform the transaction and return the id generated.
         $this->dbh->beginTransaction();
         $insert->execute();
         $id = $this->dbh->lastInsertId();
+        $this->columns['id'] = $id;
         $this->dbh->commit();
         return $id;
     }
@@ -153,14 +192,31 @@ abstract class DomainModel {
      * @return boolean result
      */
     public function verify() {
-        if ($this->id == null) {
+        if ($this->columns['id'] == null) {
             return false;
         }
 
         $select = $this->dbh->prepare("select id from {$this->tableName} where id = :id");
-        $select->execute(array(':id' => $this->id));
+        $select->execute(array(':id' => $this->columns['id']));
 
         $count = $select->rowCount();
         return ($count == 1);
+    }
+
+    /**
+     * Sets a column key value. This is just a cleaner way of $domain->cols[]
+     * @param $key
+     * @param $value
+     */
+    public function setVal($key, $value) {
+
+    }
+
+    /**
+     * Gets a key value from the object.
+     * @param $key
+     */
+    public function getVal($key) {
+
     }
 } 
