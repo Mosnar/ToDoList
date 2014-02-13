@@ -114,10 +114,18 @@ abstract class DomainModel {
     */
 
     /**
+     * Returns the columns and values as array
+     * @return columns + vals
+     */
+    public function toArray() {
+        return $this->columns;
+    }
+
+    /**
      * Attempts to set the object fields to match those set in it's database-mapped counterpart
      * @return bool
      */
-    /*
+
     public function pull() {
         if (!self::verify()) {
             return false;
@@ -128,18 +136,11 @@ abstract class DomainModel {
         $select->setFetchMode(PDO::FETCH_ASSOC);
 
         while ($row = $select->fetch()) {
-            print_r($row);
-
-
-            $this->datetime = $row['datetime'];
-            $this->text = $row['text'];
-            $this->inProgress = $row['in_progress'];
-            $this->uid = $row['uid'];
-
+            $this->columns = array_replace($this->columns, $row);
         }
         return true;
     }
-    */
+
 
 
     /**
