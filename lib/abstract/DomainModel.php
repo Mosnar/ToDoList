@@ -13,6 +13,7 @@ abstract class DomainModel {
     private $tableName;
     private $dbh;
     private $columns = array();
+
     /**
      * This should be implemented in the object class to run the DomainModel's abstract "setup" method.
      * This must be self-implemented when using dependency injection since DI does not become active in
@@ -59,9 +60,10 @@ abstract class DomainModel {
      * @param $dbh database handle
      * @param $table table name
      */
-    protected function setup($dbh, $table) {
+    protected function setup($dbh, $table, &$columns) {
         self::setDatabaseHandle($dbh);
         self::setTableName($table);
+        self::setColumns($columns);
     }
 
     /**

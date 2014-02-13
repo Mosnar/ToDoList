@@ -27,8 +27,7 @@ class ToDoItem extends DomainModel
 
     public function initialize() {
         $this->dbh = $this->database->getHandle();
-        self::setup($this->dbh, 'tasks');
-        self::setColumns($this->cols);
+        self::setup($this->dbh, 'tasks', $this->cols);
     }
     /**
      * Prints out a human readable string regardless of synchronization state
